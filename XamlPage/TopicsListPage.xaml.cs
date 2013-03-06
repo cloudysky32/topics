@@ -174,8 +174,8 @@ namespace Topics.XamlPage
             }
 
             this.loadingScreen.Visibility = Visibility.Collapsed;
-            this.itemListView.Visibility = Visibility.Visible;
-            this.itemDetail.Visibility = Visibility.Visible;
+            //this.itemListView.Visibility = Visibility.Visible;
+            //this.itemDetail.Visibility = Visibility.Visible;
         }
 
         private void CreateTopicButton_Click(object sender, RoutedEventArgs e)
