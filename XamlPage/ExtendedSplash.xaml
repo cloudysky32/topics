@@ -1,0 +1,45 @@
+﻿<Grid Background="#1d1d1d"
+      x:Class="Topics.XamlPage.ExtendedSplash"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      mc:Ignorable="d"
+      d:DesignWidth="1366" d:DesignHeight="768">
+    
+    <Grid.Resources>
+        <Storyboard x:Name="AnimateLogo">
+            <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.RenderTransform).(CompositeTransform.TranslateY)" Storyboard.TargetName="extendedSplashImage">
+                <EasingDoubleKeyFrame KeyTime="0" Value="0"/>
+                <EasingDoubleKeyFrame KeyTime="0:0:2" Value="-150"/>
+            </DoubleAnimationUsingKeyFrames>
+        </Storyboard>
+        <Storyboard x:Name="AnimateSignInBtn">
+            <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Opacity)" Storyboard.TargetName="signInButton">
+                <EasingDoubleKeyFrame KeyTime="0:0:1" Value="0"/>
+                <EasingDoubleKeyFrame KeyTime="0:0:3" Value="1"/>
+            </DoubleAnimationUsingKeyFrames>
+        </Storyboard>
+    </Grid.Resources>
+    
+    
+    <Grid.RowDefinitions>
+        <RowDefinition/>
+        <RowDefinition Height="180"/>
+    </Grid.RowDefinitions>
+
+    <StackPanel Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0, 50">
+        <Button x:Name="signInButton" Content="Sign In With Live Id" Opacity="0" Click="SignInBtn_Click"/>
+    </StackPanel>
+    
+    <Canvas Grid.Row="0">
+        <Image x:Name="extendedSplashImage" Source="ms-appx:///Assets/SplashScreen.png">
+            <Image.RenderTransform>
+                <CompositeTransform/>
+            </Image.RenderTransform>
+        </Image>
+    </Canvas>
+    <StackPanel Grid.Row="1" HorizontalAlignment="Center">
+        <ProgressRing x:Name="progressRing" Foreground="White" HorizontalAlignment="Center" IsActive="True" MaxHeight="50" MinHeight="50" MaxWidth="50" MinWidth="50"></ProgressRing>
+    </StackPanel>
+</Grid>
