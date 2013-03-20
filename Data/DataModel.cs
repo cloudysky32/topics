@@ -304,6 +304,7 @@ namespace Topics.Data
             get { return this._itemGroups; }
         }
 
+        // Store Weekly Topics Data
         public void StoreWeeklyTopicsData(List<Post> postList)
         {
             if (postList != null)
