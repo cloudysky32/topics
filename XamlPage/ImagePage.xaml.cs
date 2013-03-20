@@ -11,27 +11,30 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
-using Windows.UI.ApplicationSettings;
-using Topics.Data;
-
-// The User Control item template is documented at http://go.microsoft.com/fwlink/?LinkId=234236
 
 namespace Topics.XamlPage
 {
-    public sealed partial class Privacy : UserControl
+    public sealed partial class ImagePage : UserControl
     {
-        public Privacy()
+        private Windows.UI.Xaml.Controls.Image _image;
+
+        public ImagePage(Windows.UI.Xaml.Controls.Image imageSource)
         {
             this.InitializeComponent();
+            this._image = imageSource;
         }
 
-        private void PrivacyBackClicked(object sender, RoutedEventArgs e)
+        private void BackButton_GoBack(object sender, RoutedEventArgs e)
         {
             if (this.Parent.GetType() == typeof(Popup))
             {
                 ((Popup)this.Parent).IsOpen = false;
             }
-            SettingsPane.Show();
+        }
+
+        private void ImagePage_Loaded(object sender, RoutedEventArgs e)
+        {
+            this.image.Source = this._image.Source;
         }
     }
 }

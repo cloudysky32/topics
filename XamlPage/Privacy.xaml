@@ -111,7 +111,7 @@
     <!-- This section describes the text and layout of the elements that are -->
     <!-- displayed in the Flyout window.                                     -->
     <Border BorderBrush="Black" BorderThickness="1,0,0,0">
-        <Grid Background="Gray" VerticalAlignment="Stretch">
+        <Grid Background="White" VerticalAlignment="Stretch">
             <!-- Root grid definition -->
             <Grid.RowDefinitions>
                 <RowDefinition Height="80" />
@@ -119,7 +119,7 @@
             </Grid.RowDefinitions>
 
             <!-- Header area for panel -->
-            <Grid Background="Black" Grid.Row="0">
+            <Grid Background="#FFF16823" Grid.Row="0">
 
                 <Grid Margin="40,32,17,13">
 

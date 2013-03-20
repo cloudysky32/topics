@@ -18,7 +18,6 @@ using Topics.Util;
 using Topics.Data;
 using System.Threading.Tasks;
 using Windows.UI.Xaml.Media.Imaging;
-// The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=234238
 
 namespace Topics.XamlPage
 {
@@ -30,12 +29,17 @@ namespace Topics.XamlPage
 
         private SplashScreen splash; // Variable to hold the splash screen object.
 
+        private CoreDispatcher coreDispatcher;
+
         public ExtendedSplash(SplashScreen splashscreen, bool loadState)
         {
             InitializeComponent();
             // Listen for window resize events to reposition the extended splash screen image accordingly.
             // This is important to ensure that the extended splash screen is formatted properly in response to snapping, unsnapping, rotation, etc...
             Window.Current.SizeChanged += new WindowSizeChangedEventHandler(ExtendedSplash_OnResize);
+
+            this.coreDispatcher = Window.Current.Dispatcher;
+            dismissed = true;
 
             splash = splashscreen;
 
@@ -54,7 +58,6 @@ namespace Topics.XamlPage
 
             // Restore the saved session state if necessary
             RestoreStateAsync(loadState);
-
         }
 
         async void RestoreStateAsync(bool loadState)
@@ -97,6 +100,13 @@ namespace Topics.XamlPage
             // This sample navigates away from the extended splash screen when the "Learn More" button is clicked.
         }
 
+        private void dispatch()
+        {
+            rootFrame.Navigate(typeof(MainPage));
+            Window.Current.Content = rootFrame;
+            Window.Current.Activate();
+        }
+
         private async Task InitializeApplication()
         {
             MessageDialog messageDialog = null;
@@ -107,37 +117,12 @@ namespace Topics.XamlPage
                 {
                     App.Current.Resources["UserName"] = User.Instance.Name;
                     App.Current.Resources["UserEmail"] = User.Instance.Email;
-                    App.Current.Resources["UserPictureUri"] = User.Instance.PictureUri;
+                    App.Current.Resources["UserPicture"] = new BitmapImage(new Uri(User.Instance.PictureUri));
 
                     HttpClientPostType httpClientPostType = new HttpClientPostType();
-                    List<Category> categoryList = await httpClientPostType.GetCategoryList("0");
+                    User.Instance.Subscription.StoreSubscriptionsData(await httpClientPostType.GetSubscriptionList(User.Instance.Email));
 
-                    httpClientPostType = new HttpClientPostType();
-                    List<Topic> subscriptionList = await httpClientPostType.GetSubscriptionList(User.Instance.Email);
-
-                    httpClientPostType = new HttpClientPostType();
-                    List<Issue> hotIssueList = await httpClientPostType.GetHotIssueList();
-
-                    try
-                    {
-                        DataSource dataSource = new DataSource();
-
-                        dataSource.InitMainPageDataSource(hotIssueList, subscriptionList, categoryList);
-
-                        rootFrame.Navigate(typeof(MainPage), dataSource.ItemGroups);
-                        Window.Current.Content = rootFrame;
-                        Window.Current.Activate();
-                    }
-                    catch(Exception ex)
-                    {
-                        System.Diagnostics.Debug.WriteLine(ex.Message);
-
-                        messageDialog = new MessageDialog("An internet connection is needed to download feeds. Please check your connection and restart the app.");
-                        messageDialog.Commands.Add(new UICommand("OK", (UICommandInvokedHandler) =>
-                        {
-                            Application.Current.Exit();
-                        }));
-                    }
+                    await this.coreDispatcher.RunAsync(CoreDispatcherPriority.Normal, new DispatchedHandler(dispatch));
                 }
                 else
                 {

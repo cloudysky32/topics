@@ -1,0 +1,47 @@
+﻿<UserControl
+    x:Class="Topics.XamlPage.NewPostPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Topics.XamlPage"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    d:DesignHeight="150"
+    d:DesignWidth="400">
+    
+    <Grid Background="Gray">
+        <Grid.Transitions>
+            <TransitionCollection>
+                <EdgeUIThemeTransition Edge="Top"/>
+            </TransitionCollection>
+        </Grid.Transitions>
+        
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="150"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="150"/>
+        </Grid.ColumnDefinitions>
+        
+        <Border Grid.ColumnSpan="3" BorderThickness="0,0,0,2" BorderBrush="Black"/>
+        
+        <Grid Grid.Column="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="50"/>
+            </Grid.RowDefinitions>
+            
+            <Border Grid.Row="0">
+                <Image x:Name="displayImage" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="5"/>
+            </Border>
+
+            <Button x:Name="findImageButton" Grid.Row="1" Content="Picture" Click="FindImageButton_Click" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,0,0,10"/>
+        </Grid>
+        
+        <Grid Grid.Column="1">
+            <TextBox x:Name="postTextBox" Margin="10" TextWrapping="Wrap"/>
+        </Grid>
+        
+        <Button x:Name="submitPostButton" Grid.Column="2" Content="Submit" VerticalAlignment="Center" HorizontalAlignment="Center" Click="SubmitPostButton_Click"/>
+        <ProgressRing x:Name="progressRing" Grid.Column="2" Foreground="White" IsActive="False" Height="25" Width="25"/>
+    </Grid>
+</UserControl>

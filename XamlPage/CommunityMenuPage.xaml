@@ -1,22 +1,16 @@
-﻿<common:LayoutAwarePage
-    x:Name="pageRoot"
-    x:Class="Topics.XamlPage.MainPage"
-    DataContext="{Binding DefaultViewModel, RelativeSource={RelativeSource Self}}"
+﻿<UserControl
+    x:Class="Topics.XamlPage.CommunityMenuPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:Topics.XamlPage"
     xmlns:util="using:Topics.Util.View"
-    xmlns:common="using:Topics.Common"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d" Loaded="MainPage_Loaded">
-
+    mc:Ignorable="d"
+    d:DesignHeight="{Binding ElementName=CurrentPresenter, Path=ActualHeight}"
+    d:DesignWidth="400" Loaded="CommunityMenuPage_Loaded">
+    
     <UserControl.Resources>
-
-        <CollectionViewSource
-            x:Name="menuListItems"
-            Source="{Binding Menu}"/>
-
         <!-- Menu ListView Style -->
         <Style x:Key="CustomListViewStyle" TargetType="ListViewItem">
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
@@ -112,33 +106,105 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <Style x:Key="EditAppBarButtonStyle" TargetType="ButtonBase" BasedOn="{StaticResource AppBarButtonStyle}">
+            <Setter Property="AutomationProperties.AutomationId" Value="EditAppBarButton"/>
+            <Setter Property="Content" Value="&#xE104;"/>
+        </Style>
+
+        <Style x:Key="FavoriteAppBarButtonStyle" TargetType="ButtonBase" BasedOn="{StaticResource AppBarButtonStyle}">
+            <Setter Property="AutomationProperties.AutomationId" Value="FavoriteAppBarButton"/>
+            <Setter Property="Content" Value="&#xE113;"/>
+        </Style>
+
     </UserControl.Resources>
+    
+    <Grid>
+        <Grid.Transitions>
+            <TransitionCollection>
+                <PaneThemeTransition Edge="Right"/>
+            </TransitionCollection>
+        </Grid.Transitions>        
+        
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="120"/>
+            <ColumnDefinition Width="280"/>
+        </Grid.ColumnDefinitions>
 
-    <Grid Style="{StaticResource LayoutRootStyle}">
-        <Grid Background="#1d1d1d">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="120"/>
-                <ColumnDefinition Width="280"/>                                  
-                <ColumnDefinition Width="4*"/>
-                <ColumnDefinition Width="3*"/>
-            </Grid.ColumnDefinitions>
-
-            <!-- Grid Column 0 : Back Button Grid Column -->
-            <Grid Grid.Column="0" Grid.ColumnSpan="2" Background="#FF272727" x:Name="menuGrid"/>
-
-            <!-- Grid Column 1 : User Profile / Menu ListView Grid Column -->
-            <Grid Grid.Column="1">
+        <!-- Grid Column 0 : Back Button Grid Column -->
+        <Grid Grid.Column="0" Background="#FF272727">
+            <Grid>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="110"/>
+                    <RowDefinition Height="70"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Button x:Name="BackButton" Style="{StaticResource BackButtonStyle}" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,30" Click="BackButton_GoBack"/>
+                <Button x:Name="newPostButton" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Top" Style="{StaticResource EditAppBarButtonStyle}" AutomationProperties.Name="" Click="NewPostButton_Click" IsEnabled="{Binding IsTrue}" DataContext="{Binding DataContext, ElementName=communityProfileGrid}"/>
+                <Button x:Name="subscribeButton" Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Top" Style="{StaticResource FavoriteAppBarButtonStyle}" AutomationProperties.Name="" Click="SubscribeButton_Click"/>
+            </Grid>
+        </Grid>
+
+        <!-- Grid Column 1 : User Profile / Menu ListView Grid Column -->
+        <ScrollViewer Grid.Column="1" Background="#FF272727" ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollMode="Auto">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="420"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <Border x:Name="Logo" Grid.Row="0" HorizontalAlignment="Left" Margin="10,50,70,0">
-                    <Image Source="ms-appx:///Assets/Logo.png" Stretch="Uniform"/>                        
-                </Border>
-                
-                <Button Grid.Row="1" x:Name="userProfileButton" Margin="0,20,0,0" HorizontalAlignment="Left" BorderThickness="0" Click="UserProfileButton_Click" >
+                <!-- Grid.Row 0 : Community Profile Grid -->
+                <Grid x:Name="communityProfileGrid" Height="400" Width="260" Margin="3">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="60"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="35"/>
+                        <RowDefinition Height="35"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0" Background="#f26822">
+                        <StackPanel VerticalAlignment="Center" Margin="10,0">
+                            <TextBlock Text="{Binding Title}" Style="{StaticResource TitleTextStyle}" TextWrapping="NoWrap" FontSize="18" HorizontalAlignment="Left"/>
+                        </StackPanel>
+                        <StackPanel VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,5">
+                            <TextBlock Text="{Binding OriginalSource.CommunityDateTime}" Style="{StaticResource CaptionTextStyle}" TextWrapping="NoWrap"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid Grid.Row="1">
+                        <Grid.Background>
+                            <ImageBrush ImageSource="{Binding Image}" Stretch="UniformToFill"/>
+                        </Grid.Background>
+
+                        <Border Background="#AA000000"/>
+                        <StackPanel Margin="10,5,0,0">
+                            <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" Margin="0,0,10,10">
+                                <TextBlock Text="{Binding OriginalSource.Era}" Style="{StaticResource BodyTextStyle}" FontWeight="Bold" Margin="3,0"/>
+                                <TextBlock Text="Era" Foreground="#f26822" Style="{StaticResource BodyTextStyle}"/>
+                            </StackPanel>
+                            <TextBlock Text="{Binding Description}" Style="{StaticResource BodyTextStyle}" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid Grid.Row="2" Background="Black">
+                        <StackPanel Margin="10,0" VerticalAlignment="Center" Orientation="Horizontal">
+                            <TextBlock Text="Master" Style="{StaticResource SubtitleTextStyle}"/>
+                            <TextBlock Text="{Binding OriginalSource.Master}" Style="{StaticResource CaptionTextStyle}" Margin="10,0"/>
+                        </StackPanel>
+                    </Grid>
+                    <Grid Grid.Row="3" Background="Black">
+                        <StackPanel Margin="10,0" VerticalAlignment="Center" HorizontalAlignment="Right" Orientation="Horizontal">
+                            <TextBlock Text="User " Style="{StaticResource SubtitleTextStyle}" Margin="5,0"/>
+                            <TextBlock Text="{Binding OriginalSource.UserCount}" Style="{StaticResource SubtitleTextStyle}" Foreground="#f26822" Margin="5,0"/>
+                            <TextBlock Text="/ Post " Style="{StaticResource SubtitleTextStyle}" Margin="5,0"/>
+                            <TextBlock Text="{Binding OriginalSource.PostCount}" Style="{StaticResource SubtitleTextStyle}" Foreground="#f26822" Margin="5,0"/>
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+
+                <!-- Grid.Row 1 : User Profile Gird -->
+                <Button Grid.Row="1" x:Name="userProfileButton" HorizontalAlignment="Left" BorderThickness="0" Click="UserProfileButton_Click">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
@@ -153,56 +219,18 @@
                         </StackPanel>
                     </Grid>
                 </Button>
-                
-                <ListView
+
+                <!-- Grid.Row 2 : Menu ListView -->
+                <util:CustomListView
                     x:Name="menuListView"
                     AutomationProperties.AutomationId="MenuListView"
                     AutomationProperties.Name="MenuItems"
                     TabIndex="1"
                     Grid.Row="2"
-                    Margin="0,20"
                     ItemContainerStyle="{StaticResource CustomListViewStyle}"
-                    ItemsSource="{Binding Source={StaticResource menuListItems}}"
                     IsSwipeEnabled="False"
                     SelectionChanged="MenuListView_SelectionChanged"/>
             </Grid>
-
-            <!-- Grid Column 2, 3 : Background Color Setter // Background="#007eba" -->
-            <Grid Grid.Column="2" Grid.ColumnSpan="2" x:Name="popupPageGrid">
-                <Grid.Background>
-                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-                        <GradientStop Color="#FF2B2A2A"/>
-                        <GradientStop Color="#FF343434" Offset="0.707"/>
-                        <GradientStop Color="#FF2B2A2A" Offset="1"/>
-                        <GradientStop Color="#FF2B2A2A" Offset="0.94"/>
-                        <GradientStop Color="#FF2B2A2A" Offset="0.401"/>
-                    </LinearGradientBrush>
-                </Grid.Background>
-            </Grid>
-
-                <!-- Grid Column 3 : Comment Grid -->
-            <Grid Grid.Column="3" x:Name="commentGrid"/>
-        </Grid>
-
-        <VisualStateManager.VisualStateGroups>
-
-            <!-- Visual states reflect the application's view state -->
-            <VisualStateGroup x:Name="ApplicationViewStates">
-                <VisualState x:Name="FullScreenLandscape"/>
-                <VisualState x:Name="Filled"/>
-
-                <!-- The entire page respects the narrower 100-pixel margin convention for portrait -->
-                <VisualState x:Name="FullScreenPortrait">
-                    <Storyboard>
-                    </Storyboard>
-                </VisualState>
-
-                <!-- The back button and title have different styles when snapped -->
-                <VisualState x:Name="Snapped">
-                    <Storyboard>
-                    </Storyboard>
-                </VisualState>
-            </VisualStateGroup>
-        </VisualStateManager.VisualStateGroups>
+        </ScrollViewer>
     </Grid>
-</common:LayoutAwarePage>
+</UserControl>

@@ -11,253 +11,88 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
-using Topics.Util;
 using Topics.Data;
-using System.Threading.Tasks;
-using Windows.UI.Xaml.Media.Imaging;
+using Topics.Util;
+using Topics.Util.View;
 using Windows.UI.Popups;
 
 namespace Topics.XamlPage
 {
     public sealed partial class MainPage : Topics.Common.LayoutAwarePage
     {
-        private static volatile DataSource _detailItemsDataSource = new DataSource();
-        private static object _syncRoot = new Object();
-        private static DataSource DetailItemsDataSource
-        {
-            get
-            {
-                if (_detailItemsDataSource == null)
-                {
-                    lock (_syncRoot)
-                    {
-                        if (_detailItemsDataSource == null)
-                            _detailItemsDataSource = new DataSource();
-                    }
-                }
-                return _detailItemsDataSource;
-            }
-        }
+        private Popup               _popupPage = new Popup();
+
+        private SubscriptionsPage   _subscriptionsPage = new SubscriptionsPage();
+        private CategoryMenuPage    _categoryMenuPage = new CategoryMenuPage();
+        private PostsPage           _hotTopcisPage;
+
+        private DataGroup           _mainMenuListData = new DataGroup();
 
         public MainPage()
         {
             this.InitializeComponent();
+            InitMainMenu();
         }
 
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
-            TextBlockChanger.Do(this.pageTitle);
-
-            this.DefaultViewModel["UserPicture"] = new BitmapImage(new Uri(App.Current.Resources["UserPictureUri"].ToString(), UriKind.Absolute));
-            this.DefaultViewModel["Groups"] = e.Parameter;
-            this.DefaultViewModel["Categories"] = DetailItemsDataSource.ItemGroups;
         }
 
         protected override void LoadState(Object navigationParameter, Dictionary<String, Object> pageState)
         {
-            if (pageState != null && pageState.ContainsKey("dataSource"))
-            {
-                this.DefaultViewModel["Groups"] = pageState["dataSource"];
-            }
         }
 
         protected override void SaveState(Dictionary<String, Object> pageState)
         {
-            pageState["dataSource"] = this.DefaultViewModel["Groups"];
         }
 
-        protected override void OnApplyTemplate()
+        private void MainPage_Loaded(object sender, RoutedEventArgs e)
         {
-            base.OnApplyTemplate();
+            App.menuGridWidth = this.menuGrid.ActualWidth;
+            App.popupPageGridWidth = this.popupPageGrid.ActualWidth;
+            App.commentGridWidth = this.commentGrid.ActualWidth;
 
+            this.menuListView.SelectedIndex = 0;
         }
 
-        void Header_Click(object sender, RoutedEventArgs e)
+        private void InitMainMenu()
         {
-            var group = (sender as FrameworkElement).DataContext;
-
-            DataGroup dataGroup = group as DataGroup;
-
-            if (dataGroup.UniqueId.Equals("Category"))
-            {
-                //this.Frame.Navigate(typeof(GroupDetailPage), group);
-            }
+            this.DefaultViewModel["Menu"] = _mainMenuListData.Items;
+            this._mainMenuListData.InitMainMenuDataGroup();
         }
 
-        private async void ItemView_ItemClick(object sender, ItemClickEventArgs e)
+        private void MenuListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            DataItem clickedItem = e.ClickedItem as DataItem;
+            DataItem selectedItem = this.menuListView.SelectedItem as DataItem;
+            this._popupPage.IsOpen = false;
 
-            if (clickedItem.Group.UniqueId.Contains("Category") && _isDone)
+            if (selectedItem.Description.Equals("Hot Topics"))
             {
-                DetailItemsDataSource.ItemGroups.Clear();
-                _isDone = await SwapExpansion(clickedItem);
-            }
-            else if (clickedItem.Group.UniqueId.Contains("My Topics"))
-            {
-                this.Frame.Navigate(typeof(TopicPage), clickedItem);
-            }
-            else if (clickedItem.Group.UniqueId.Contains("Hot Issues"))
-            {
-                SwapExpansion_1(clickedItem);
-            }
-        }
+                if (this._hotTopcisPage == null)
+                    this._hotTopcisPage = new PostsPage("0", selectedItem.Description);
 
-        private void ItemDetailView_ItemClick(object sender, ItemClickEventArgs e)
-        {
-            DataGroup dataGroup = e.ClickedItem as DataGroup;
-            this.Frame.Navigate(typeof(TopicsListPage), dataGroup);
+                App.PopupPage(this._popupPage, App.popupPageGridWidth, this._hotTopcisPage, 2);
+            }
+            else if (selectedItem.Description.Equals("Subscriptions"))
+            {
+                App.PopupPage(this._popupPage, App.popupPageGridWidth, this._subscriptionsPage, 2);
+            }
+            else if (selectedItem.Description.Equals("Category"))
+            {
+                App.PopupPage(this._popupPage, App.menuGridWidth, this._categoryMenuPage, 0); 
+            }
         }
 
         private async void UserProfileButton_Click(object sender, RoutedEventArgs e)
         {
             PopupMenu menu = new PopupMenu();
-            menu.Commands.Add(new UICommand("Log Out", (command) =>
+            menu.Commands.Add(new UICommand("Sign Out", (command) =>
             {
-
-            }));
-            menu.Commands.Add(new UICommand("Subscriptions", (command) =>
-            {
-
+                App.SignOut();
             }));
 
-            var chosenCommand = await menu.ShowForSelectionAsync(GetElementRect((FrameworkElement)sender));
-        }
-
-        private static DataItem _expandedItem = null;
-        private static int _expandedItemIndex;
-        private static bool _isDone = true;
-
-        private async Task<bool> SwapExpansion(DataItem selectedDataItem)
-        {
-            _isDone = false;
-            selectedDataItem.IsLoading = true;
-
-            if (_expandedItem == null)
-            {
-                _expandedItem = selectedDataItem;
-                _expandedItemIndex = selectedDataItem.Group.Items.IndexOf(selectedDataItem);
-
-                selectedDataItem.Group.Items.Remove(selectedDataItem);
-                _expandedItem.ItemTemplate = ItemTemplates.EXPANDED_GRID_VIEW_ITEM;
-
-                selectedDataItem.Group.Items.Insert(_expandedItemIndex, _expandedItem);
-
-                //selectedDataItem.ItemTemplate = ItemTemplates.EXPANDED_GRID_VIEW_ITEM;
-                //itemGridView.Invalidate(selectedDataItem, this.TemplateSelector);
-
-                HttpClientPostType httpClientPostType = new HttpClientPostType();
-                List<Category> categoryList = await httpClientPostType.GetCategoryList(selectedDataItem.UniqueId);
-                httpClientPostType.Dispose();
-
-                if (categoryList != null)
-                {
-                    DetailItemsDataSource.StoreDetailCategoryDataSource(categoryList);
-                    selectedDataItem.IsLoading = false;
-                }
-            }
-            else
-            {
-                if (_expandedItem.Equals(selectedDataItem))
-                {
-
-                    selectedDataItem.Group.Items.Remove(selectedDataItem);
-                    _expandedItem.ItemTemplate = ItemTemplates.DEFAULT;
-
-                    selectedDataItem.Group.Items.Insert(_expandedItemIndex, _expandedItem);
-
-                    //selectedDataItem.ItemTemplate = ItemTemplates.DEFAULT;
-
-                    _expandedItem = null;
-                }
-                else
-                {
-                    selectedDataItem.Group.Items.Remove(_expandedItem);
-                    _expandedItem.ItemTemplate = ItemTemplates.DEFAULT;
-
-                    selectedDataItem.Group.Items.Insert(_expandedItemIndex, _expandedItem);
-
-                    _expandedItem = selectedDataItem;
-                    _expandedItemIndex = selectedDataItem.Group.Items.IndexOf(selectedDataItem);
-
-                    selectedDataItem.Group.Items.Remove(selectedDataItem);
-                    _expandedItem.ItemTemplate = ItemTemplates.EXPANDED_GRID_VIEW_ITEM;
-
-                    selectedDataItem.Group.Items.Insert(_expandedItemIndex, _expandedItem);
-
-                    HttpClientPostType httpClientPostType = new HttpClientPostType();
-                    List<Category> categoryList = await httpClientPostType.GetCategoryList(selectedDataItem.UniqueId);
-                    httpClientPostType.Dispose();
-
-                    if (categoryList != null)
-                    {
-                        DetailItemsDataSource.StoreDetailCategoryDataSource(categoryList);
-                        selectedDataItem.IsLoading = false;
-                    }
-                }
-            }
-
-            return true;
-        }
-
-        private static DataItem _expandedItem_1 = null;
-        private static int _expandedItemIndex_1;
-        private void SwapExpansion_1(DataItem selectedDataItem)
-        {
-            if (_expandedItem_1 == null)
-            {
-                _expandedItem_1 = selectedDataItem;
-                _expandedItemIndex_1 = selectedDataItem.Group.Items.IndexOf(selectedDataItem);
-
-                selectedDataItem.Group.Items.Remove(selectedDataItem);
-                _expandedItem_1.ItemTemplate = ItemTemplates.EXPANDED_DETAIL_VIEW_ITEM;
-
-                selectedDataItem.Group.Items.Insert(_expandedItemIndex, _expandedItem_1);
-
-                //selectedDataItem.ItemTemplate = ItemTemplates.EXPANDED_GRID_VIEW_ITEM;
-            }
-            else
-            {
-                if (_expandedItem_1.Equals(selectedDataItem))
-                {
-                    selectedDataItem.Group.Items.Remove(selectedDataItem);
-                    _expandedItem_1.ItemTemplate = ItemTemplates.DEFAULT;
-
-                    selectedDataItem.Group.Items.Insert(_expandedItemIndex_1, _expandedItem_1);
-
-                    //selectedDataItem.ItemTemplate = ItemTemplates.DEFAULT;
-
-                    _expandedItem_1 = null;
-                }
-                else
-                {
-                    selectedDataItem.Group.Items.Remove(_expandedItem_1);
-                    _expandedItem_1.ItemTemplate = ItemTemplates.DEFAULT;
-
-                    selectedDataItem.Group.Items.Insert(_expandedItemIndex_1, _expandedItem_1);
-
-                    _expandedItem_1 = selectedDataItem;
-                    _expandedItemIndex_1 = selectedDataItem.Group.Items.IndexOf(selectedDataItem);
-
-                    selectedDataItem.Group.Items.Remove(selectedDataItem);
-                    _expandedItem_1.ItemTemplate = ItemTemplates.EXPANDED_DETAIL_VIEW_ITEM;
-
-                    selectedDataItem.Group.Items.Insert(_expandedItemIndex_1, _expandedItem_1);
-                }
-            }
-        }
-
-        public static Rect GetElementRect(FrameworkElement element)
-        {
-            GeneralTransform buttonTransform = element.TransformToVisual(null);
-            Point point = buttonTransform.TransformPoint(new Point());
-            return new Rect(point, new Size(element.ActualWidth, element.ActualHeight));
-        }
-
-        private void GroupHeader_Loaded(object sender, RoutedEventArgs e)
-        {
-            TextBlockChanger.Do(sender);
+            var chosenCommand = await menu.ShowForSelectionAsync(App.GetElementRect((FrameworkElement)sender));
         }
     }
 }

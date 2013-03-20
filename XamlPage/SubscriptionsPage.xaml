@@ -1,0 +1,123 @@
+﻿<UserControl x:Name="userControl"
+    x:Class="Topics.XamlPage.SubscriptionsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Topics.XamlPage"
+    xmlns:util="using:Topics.Util.View"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    d:DesignHeight="{Binding ElementName=CurrentPresenter, Path=ActualHeight}"
+    d:DesignWidth="{Binding ElementName=popupPageGrid, Path=ActualWidth, Source=MainPage}" Loaded="SubscriptionPage_Loaded">
+    
+    <UserControl.Resources>
+        <!-- DataTemplate : Subscription ListViewItem -->
+        <DataTemplate x:Key="TallSizeGridItemTemplate">
+            <Grid Height="600" Width="240" Margin="3">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="60"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="35"/>
+                    <RowDefinition Height="35"/>
+                </Grid.RowDefinitions>
+
+                <Grid Grid.Row="0" Background="#f26822">
+                    <StackPanel VerticalAlignment="Center" Margin="10,0">
+                        <TextBlock Text="{Binding Title}" Style="{StaticResource TitleTextStyle}" TextWrapping="NoWrap" FontSize="18" HorizontalAlignment="Left"/>
+                    </StackPanel>
+                    <StackPanel VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,5">
+                        <TextBlock Text="{Binding OriginalSource.CommunityDateTime}" Style="{StaticResource CaptionTextStyle}" TextWrapping="NoWrap"/>
+                    </StackPanel>
+                </Grid>
+                
+                <Grid Grid.Row="1">
+                    <Grid.Background>
+                        <ImageBrush ImageSource="{Binding Image}" Stretch="UniformToFill"/>
+                    </Grid.Background>
+                    
+                    <Border Background="#AA000000"/>
+                    <StackPanel Margin="10,5,0,0">
+                        <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" Margin="0,0,10,10">
+                            <TextBlock Text="{Binding OriginalSource.Era}" Style="{StaticResource BodyTextStyle}" FontWeight="Bold" Margin="3,0"/>
+                            <TextBlock Text="Era" Foreground="#f26822" Style="{StaticResource BodyTextStyle}"/>
+                        </StackPanel>
+                        <TextBlock Text="{Binding Description}" Style="{StaticResource BodyTextStyle}"/>
+                    </StackPanel>                    
+                </Grid>
+                
+                <Grid Grid.Row="2" Background="Black">
+                    <StackPanel Margin="10,0" VerticalAlignment="Center" Orientation="Horizontal">
+                        <TextBlock Text="Master" Style="{StaticResource SubtitleTextStyle}"/>
+                        <TextBlock Text="{Binding OriginalSource.Master}" Style="{StaticResource CaptionTextStyle}" Margin="10,0"/>
+                    </StackPanel>
+                </Grid>
+                <Grid Grid.Row="3" Background="Black">
+                    <StackPanel Margin="10,0" VerticalAlignment="Center" HorizontalAlignment="Right" Orientation="Horizontal">
+                        <TextBlock Text="User " Style="{StaticResource SubtitleTextStyle}" Margin="5,0"/>
+                        <TextBlock Text="{Binding OriginalSource.UserCount}" Style="{StaticResource SubtitleTextStyle}" Foreground="#f26822" Margin="5,0"/>
+                        <TextBlock Text="/ Post " Style="{StaticResource SubtitleTextStyle}" Margin="5,0"/>
+                        <TextBlock Text="{Binding OriginalSource.PostCount}" Style="{StaticResource SubtitleTextStyle}" Foreground="#f26822" Margin="5,0"/>
+                    </StackPanel>
+                </Grid>      
+            </Grid>
+        </DataTemplate>
+
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.Background>
+            <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                <GradientStop Color="#FF2B2A2A"/>
+                <GradientStop Color="#FF343434" Offset="0.707"/>
+                <GradientStop Color="#FF2B2A2A" Offset="1"/>
+                <GradientStop Color="#FF2B2A2A" Offset="0.94"/>
+                <GradientStop Color="#FF2B2A2A" Offset="0.401"/>
+            </LinearGradientBrush>
+        </Grid.Background>
+
+        <Grid.Transitions>
+            <TransitionCollection>
+                <PaneThemeTransition Edge="Right"/>
+            </TransitionCollection>
+        </Grid.Transitions>
+        
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="4*"/>
+            <ColumnDefinition Width="3*"/>
+        </Grid.ColumnDefinitions>
+
+        <Rectangle Grid.ColumnSpan="2" HorizontalAlignment="Left" Height="5" VerticalAlignment="Top" Width="{Binding Width, ElementName=userControl}" Fill="#FFF16823" Margin="30,75,0,0"/>
+
+        <!-- Grid Column 2 : Subscription List Grid -->
+        <Grid Grid.Column="0" Grid.ColumnSpan="2" x:Name="subscriptionsGridPage">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="30"/>
+                <RowDefinition Height="50"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <StackPanel Grid.Row="1" Margin="30,0" Orientation="Horizontal">
+                <TextBlock Text="Subscriptions" FontFamily="Segoe UI Symbol" FontSize="35" Foreground="White"/>
+                <ProgressRing x:Name="progressRing" Foreground="White" IsActive="True" Height="25" Width="25" Margin="20,0"></ProgressRing>
+            </StackPanel>
+
+            <GridView
+                    x:Name="subscriptionsGridView"
+                    AutomationProperties.AutomationId="SubscriptionsGridView"
+                    AutomationProperties.Name="SubscriptionItems"
+                    TabIndex="1"
+                    Grid.Row="2"
+                    Margin="30,30,0,0" 
+                    ItemTemplate="{StaticResource TallSizeGridItemTemplate}"
+                    SelectionMode="None"
+                    IsSwipeEnabled="false" IsItemClickEnabled="True" FontFamily="Segoe UI Symbo" ItemClick="SubscriptionGridView_ItemClick">
+                
+                <GridView.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <VirtualizingStackPanel Orientation="Horizontal"/>
+                    </ItemsPanelTemplate>
+                </GridView.ItemsPanel>
+            </GridView>
+        </Grid>
+    </Grid>
+</UserControl>
