@@ -8,7 +8,7 @@ using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Documents;
 using Windows.UI.Xaml.Media;
 
-namespace Topics.Util
+namespace Topics.Util.View
 {
     class TextBlockChanger
     {

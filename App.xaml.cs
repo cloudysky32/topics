@@ -19,18 +19,21 @@ using Topics.XamlPage;
 using Topics.Util;
 using Topics.Data;
 using Windows.UI.Xaml.Media.Imaging;
-// The Blank Application template is documented at http://go.microsoft.com/fwlink/?LinkId=234227
+using Windows.UI.Xaml.Media.Animation;
+using Windows.UI.ViewManagement;
 
 namespace Topics
 {
-    /// <summary>
-    /// Provides application-specific behavior to supplement the default Application class.
-    /// </summary>
     sealed partial class App : Application
     {
-        Rect            _windowBounds;
-        double          _settingsWidth = 346;
-        Popup           _settingsPopup;
+        Rect                    _windowBounds;
+        double                  _settingsWidth = 346;
+        Popup                   _settingsPopup;
+        Popup                   _popupPage;
+
+        public static double    menuGridWidth { get; set; }
+        public static double    popupPageGridWidth { get; set; }
+        public static double    commentGridWidth { get; set; }
 
         public App()
         {
@@ -56,118 +59,16 @@ namespace Topics
 
             Window.Current.Activate();
 
-            #region Another version of OnLaunched Method
-            /*
-                        Frame rootFrame = Window.Current.Content as Frame;
-                        MessageDialog messageDialog = null;
-
-                        // Do not repeat app initialization when the Window already has content,
-                        // just ensure that the window is active
-                        if (NetworkStatus.Check())
-                        {
-                            if (rootFrame == null)
-                            {
-                                // Create a Frame to act as the navigation context and navigate to the first page
-                                rootFrame = new Frame();
-                                Topics.Common.SuspensionManager.RegisterFrame(rootFrame, "appFrame");
-
-                                if (args.PreviousExecutionState == ApplicationExecutionState.Terminated)
-                                {
-                                    //TODO: Load state from previously suspended application
-                                    if (RoamingSetting.InitUser())
-                                    {
-                                        await Topics.Common.SuspensionManager.RestoreAsync();
-                                    }
-                                    else
-                                    {
-                                        if (!rootFrame.Navigate(typeof(SignInPage), args.Arguments))
-                                        {
-                                            messageDialog = new MessageDialog("Failed to create initial page");
-                                            throw new Exception("Failed to create initial page");
-                                        }
-                                    }
-                                }
-
-                                // Place the frame in the current Window
-                                Window.Current.Content = rootFrame;
-                            }
-
-                            if (rootFrame.Content == null)
-                            {
-                                // When the navigation stack isn't restored navigate to the first page,
-                                // configuring the new page by passing required information as a navigation
-                                // parameter
-                                if (RoamingSetting.InitUser())
-                                {
-                                    HttpClientPostType httpClientPostType = new HttpClientPostType();
-                                    List<Category> categoryList = await httpClientPostType.GetCategoryList("0");
-                                    httpClientPostType.Dispose();
-
-                                    if (categoryList != null)
-                                    {
-                                        DataSource dataSource = new DataSource();
-                                        dataSource.StoreHotIssues(categoryList);
-                                        dataSource.StoreMyTopics(categoryList);
-                                        dataSource.StoreCategories(categoryList);
-
-                                        // to MainPage 
-                                        if (!rootFrame.Navigate(typeof(MainPage), dataSource.ItemGroups))
-                                        {
-                                            messageDialog = new MessageDialog("Failed to create initial page");
-                                            throw new Exception("Failed to create initial page");
-                                        }
-                                    }
-                                }
-                                else
-                                {
-                                    // to SignInPage
-                                    if (!rootFrame.Navigate(typeof(SignInPage), args.Arguments))
-                                    {
-                                        messageDialog = new MessageDialog("Failed to create initial page");
-                                        throw new Exception("Failed to create initial page");
-                                    }
-                                }
-                            }
-                        }
-                        else
-                        {
-                            messageDialog = new MessageDialog("An internet connection is needed to download feeds. Please check your connection and restart the app.");
-
-                            messageDialog.Commands.Add(new UICommand("OK", (UICommandInvokedHandler) =>
-                            {
-                                Application.Current.Exit();
-                            }));
-                        }
-
-                        if (messageDialog != null) { await messageDialog.ShowAsync(); }
-
-                        // Ensure the current window is active
-                        Window.Current.Activate();
-            */
-            #endregion
-
             _windowBounds = Window.Current.Bounds;
             Window.Current.SizeChanged += OnWindowSizeChanged;
             SettingsPane.GetForCurrentView().CommandsRequested += AppCommandsRequested;
 
+            Window.Current.SizeChanged += ChangeToSnapView;
+            _popupPage = new Popup();
         }
 
-        /// <summary>
-        /// Invoked when application execution is being suspended.  Application state is saved
-        /// without knowing whether the application will be terminated or resumed with the contents
-        /// of memory still intact.
-        /// </summary>
-        /// <param name="sender">The source of the suspend request.</param>
-        /// <param name="e">Details about the suspend request.</param>
-
-        // Define the event handler to add the new commands to the Settings pane
-        //  when it opens.
         void AppCommandsRequested(SettingsPane sender, SettingsPaneCommandsRequestedEventArgs args)
         {
-            // If your app already has some settings defined, add these blocks of code
-            //  to your existing event handler in the order you want them to appear
-            //  in the Settings pane.
-
             // Privacy settings command.
             SettingsCommand cmd = new SettingsCommand("privacy", "Privacy", (x) =>
             {
@@ -205,10 +106,119 @@ namespace Topics
             }
         }
 
+        private void ChangeToSnapView(object sender, Windows.UI.Core.WindowSizeChangedEventArgs e)
+        {
+            if (ApplicationView.Value == ApplicationViewState.Snapped)
+                App.PopupPage(this._popupPage, 330, new SnappedHotTopicsPage("0"), 2);
+            else
+                this._popupPage.IsOpen = false;
+        }
+
         // Handle Flyout window closing.
         private void OnPopupClosed(object sender, object e)
         {
             Window.Current.Activated -= OnWindowActivated;
+        }
+
+        public static async void SignOut()
+        {
+            MessageDialog messageDialog;
+
+            if (await OAuthLiveId.SignOut())
+            {
+                if (RoamingSetting.RemoveUserData())
+                {
+                    messageDialog = new MessageDialog("Successfully signed out. Thank you.");
+                    messageDialog.Commands.Add(new UICommand("OK", (UICommandInvokedHandler) =>
+                    {
+                        Application.Current.Exit();
+                    }));
+                }
+                else
+                {
+                    messageDialog = new MessageDialog("An internet connection is needed. Please check your connection and try later.");
+                }
+            }
+            else
+            {
+                messageDialog = new MessageDialog("Sorry, you can't sign out. Because you've loged in Windows with your live account");
+            }
+
+            await messageDialog.ShowAsync();
+        }
+
+        public static Rect GetElementRect(FrameworkElement element)
+        {
+            GeneralTransform buttonTransform = element.TransformToVisual(null);
+            Point point = buttonTransform.TransformPoint(new Point());
+            return new Rect(point, new Size(element.ActualWidth, element.ActualHeight));
+        }
+
+        public static void PopupPage(Popup popup, double popupSize, UserControl pane, int direction)
+        {
+            Rect _windowBounds = Window.Current.Bounds;
+            int flyoutOffset = 0;
+
+            popup.IsLightDismissEnabled = false;
+
+            switch (direction)
+            {
+                case 0: // Direction Left & Hidden Animation
+                    popup.Width = popupSize;
+                    popup.Height = _windowBounds.Height;
+
+                    pane.Width = popupSize;
+                    pane.Height = _windowBounds.Height;
+
+                    popup.SetValue(Canvas.WidthProperty, popupSize);
+                    popup.SetValue(Canvas.LeftProperty, 0);
+
+                    var transitions = new TransitionCollection();
+                    transitions.Add(new PaneThemeTransition { Edge = EdgeTransitionLocation.Right });
+                    popup.ChildTransitions = transitions;
+                    break;
+
+                case 1: // Direction Top
+                    popup.IsLightDismissEnabled = true;
+
+                    popup.Width = _windowBounds.Width - App.menuGridWidth;
+                    popup.Height = popupSize;
+
+                    pane.Width = _windowBounds.Width - App.menuGridWidth;
+                    pane.Height = popupSize;
+
+                    popup.SetValue(Canvas.TopProperty, 0);
+                    popup.SetValue(Canvas.LeftProperty, App.menuGridWidth);
+
+                    break;
+
+                case 2: // Direction Right
+                    popup.Width = popupSize;
+                    popup.Height = _windowBounds.Height;
+
+                    pane.Width = popupSize;
+                    pane.Height = _windowBounds.Height;
+
+                    popup.SetValue(Canvas.LeftProperty, _windowBounds.Width - popupSize);
+                    popup.ChildTransitions = null;
+                    break;
+            }
+
+            popup.Child = pane;
+            popup.IsOpen = true;
+
+            if (direction != 1)
+            {
+                Windows.UI.ViewManagement.InputPane.GetForCurrentView().Showing += (s, args) =>
+                {
+                    flyoutOffset = (int)args.OccludedRect.Height;
+                    popup.VerticalOffset -= flyoutOffset;
+                };
+                Windows.UI.ViewManagement.InputPane.GetForCurrentView().Hiding += (s, args) =>
+                {
+                    popup.VerticalOffset += flyoutOffset;
+                };
+            }
         }
     }
 }

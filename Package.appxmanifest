@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Package xmlns="http://schemas.microsoft.com/appx/2010/manifest">
+  <Identity Name="61097Jays.Topics" Publisher="CN=BA3690C9-161F-42DC-9FBC-DBC538A75F3F" Version="0.1.0.3" />
+  <Properties>
+    <DisplayName>Topics</DisplayName>
+    <PublisherDisplayName>Jays</PublisherDisplayName>
+    <Logo>Assets\Logo\Logo50X50.png</Logo>
+  </Properties>
+  <Prerequisites>
+    <OSMinVersion>6.2.1</OSMinVersion>
+    <OSMaxVersionTested>6.2.1</OSMaxVersionTested>
+  </Prerequisites>
+  <Resources>
+    <Resource Language="x-generate" />
+  </Resources>
+  <Applications>
+    <Application Id="App" Executable="$targetnametoken$.exe" EntryPoint="Topics.App">
+      <VisualElements DisplayName="Topics" Logo="Assets\Logo\Logo150X150.png" SmallLogo="Assets\Logo\Logo30X30.png" Description="Topics" ForegroundText="light" BackgroundColor="#ffffff">
+        <DefaultTile ShowName="logoOnly" WideLogo="Assets\Logo\Logo310X150.png" ShortName="Topics" />
+        <SplashScreen Image="Assets\SplashScreen.png" BackgroundColor="#1d1d1d" />
+        <InitialRotationPreference>
+          <Rotation Preference="landscape" />
+          <Rotation Preference="landscapeFlipped" />
+        </InitialRotationPreference>
+      </VisualElements>
+    </Application>
+  </Applications>
+  <Capabilities>
+    <Capability Name="picturesLibrary" />
+    <Capability Name="internetClient" />
+  </Capabilities>
+</Package>

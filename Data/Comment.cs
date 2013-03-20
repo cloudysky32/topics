@@ -9,10 +9,10 @@ namespace Topics.Data
     public class Comment
     {
         private int             _commentId;
-        private int             _issueId;
+        private int             _postId;
         private string          _userEmail;
         private string          _content;
-        private string          _datetime;
+        private string          _dateTime;
 
         public int CommentId
         {
@@ -20,10 +20,10 @@ namespace Topics.Data
             set { this._commentId = value; }
         }
 
-        public int IssueId
+        public int PostId
         {
-            get { return this._issueId; }
-            set { this._issueId = value; }
+            get { return this._postId; }
+            set { this._postId = value; }
         }
 
         public string UserEmail
@@ -40,8 +40,17 @@ namespace Topics.Data
 
         public string DateTime
         {
-            get { return this._datetime; }
-            set { this._datetime = value; }
+            get { return this._dateTime; }
+            set { this._dateTime = value; }
+        }
+
+        public Comment(int commentId, int postId, string userEmail, string content, string dateTime)
+        {
+            this._commentId = commentId;
+            this._postId = postId;
+            this._userEmail = userEmail;
+            this._content = content;
+            this._dateTime = dateTime;
         }
     }
 }

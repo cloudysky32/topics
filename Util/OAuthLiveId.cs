@@ -74,5 +74,27 @@ namespace Topics.Util
                 return false;
             }
         }
+
+        public static async Task<bool> SignOut()
+        {
+            try
+            {
+                LiveAuthClient LCAuth = new LiveAuthClient();
+                LiveLoginResult LCLoginResult = await LCAuth.InitializeAsync();
+
+                if (LCLoginResult.Status == LiveConnectSessionStatus.Connected)
+                {
+                    LCAuth.Logout();
+                    return true;
+                }
+
+                return false;
+            }
+            catch (LiveConnectException ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.Message);
+                return false;
+            }
+        }
     }
 }

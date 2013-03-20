@@ -119,8 +119,8 @@ namespace Topics.Util
         }
         #endregion
 
-        #region Method : Get Topic List, Function Code : 2
-        public async Task<List<Topic>> GetTopicList(string categoryId)
+        #region Method : Get Community List, Function Code : 2
+        public async Task<List<Community>> GetCommunityList(string categoryId)
         {
             Uri baseAddress = new Uri(HttpFunctionCodes.URL);
             _httpClient.BaseAddress = baseAddress;
@@ -128,7 +128,7 @@ namespace Topics.Util
             try
             {
                 List<KeyValuePair<string, string>> postData = new List<KeyValuePair<string, string>>();
-                postData.Add(new KeyValuePair<string, string>("select", HttpFunctionCodes.TOPIC.ToString()));
+                postData.Add(new KeyValuePair<string, string>("select", HttpFunctionCodes.COMMUNITY.ToString()));
                 postData.Add(new KeyValuePair<string, string>("category_id", categoryId));
 
                 HttpContent httpContent = new FormUrlEncodedContent(postData);
@@ -142,11 +142,11 @@ namespace Topics.Util
                     if (!responseString.Equals(""))
                     {
                         JsonParser jsonParser = new JsonParser();
-                        List<Topic> topicList = jsonParser.ParseTopic(responseString);
+                        List<Community> communityList = jsonParser.ParseCommunity(responseString);
 
-                        if (topicList != null)
+                        if (communityList != null)
                         {
-                            return topicList;
+                            return communityList;
                         } 
                         else { return null; }
                     } 
@@ -167,8 +167,8 @@ namespace Topics.Util
         }
         #endregion
 
-        #region Method : Get Issue List, Function Code : 3
-        public async Task<List<Issue>> GetIssueList(string topicId)
+        #region Method : Get Post List, Function Code : 3
+        public async Task<List<Post>> GetPostList(string communityId, string userEmail)
         {
             Uri baseAddress = new Uri(HttpFunctionCodes.URL);
             _httpClient.BaseAddress = baseAddress;
@@ -176,8 +176,9 @@ namespace Topics.Util
             try
             {
                 List<KeyValuePair<string, string>> postData = new List<KeyValuePair<string, string>>();
-                postData.Add(new KeyValuePair<string, string>("select", HttpFunctionCodes.ISSUE.ToString()));
-                postData.Add(new KeyValuePair<string, string>("topic_id", topicId));
+                postData.Add(new KeyValuePair<string, string>("select", HttpFunctionCodes.POST.ToString()));
+                postData.Add(new KeyValuePair<string, string>("community_id", communityId));
+                postData.Add(new KeyValuePair<string, string>("user_email", userEmail));
 
                 HttpContent httpContent = new FormUrlEncodedContent(postData);
                 HttpResponseMessage response = await _httpClient.PostAsync(HttpFunctionCodes.RESOURCE_ADDRESS, httpContent);
@@ -190,11 +191,11 @@ namespace Topics.Util
                     if (!responseString.Equals(""))
                     {
                         JsonParser jsonParser = new JsonParser();
-                        List<Issue> issueList = jsonParser.ParseIssue(responseString);
+                        List<Post> postList = jsonParser.ParsePost(responseString);
 
-                        if (issueList != null)
+                        if (postList != null)
                         {
-                            return issueList;
+                            return postList;
                         }
                         else { return null; }
                     }
@@ -215,8 +216,56 @@ namespace Topics.Util
         }
         #endregion
 
-        #region Method : Get Subscription List, Function Code : 4
-        public async Task<List<Topic>> GetSubscriptionList(string userEmail)
+        #region Method : Get Comment List, Function Code : 4
+        public async Task<List<Comment>> GetCommentList(string postId)
+        {
+            Uri baseAddress = new Uri(HttpFunctionCodes.URL);
+            _httpClient.BaseAddress = baseAddress;
+
+            try
+            {
+                List<KeyValuePair<string, string>> postData = new List<KeyValuePair<string, string>>();
+                postData.Add(new KeyValuePair<string, string>("select", HttpFunctionCodes.COMMENT.ToString()));
+                postData.Add(new KeyValuePair<string, string>("post_id", postId));
+
+                HttpContent httpContent = new FormUrlEncodedContent(postData);
+                HttpResponseMessage response = await _httpClient.PostAsync(HttpFunctionCodes.RESOURCE_ADDRESS, httpContent);
+                Dispose();
+
+                if (response.IsSuccessStatusCode)
+                {
+                    string responseString = await response.Content.ReadAsStringAsync();
+
+                    if (!responseString.Equals(""))
+                    {
+                        JsonParser jsonParser = new JsonParser();
+                        List<Comment> commentList = jsonParser.ParseComment(responseString);
+
+                        if (commentList != null)
+                        {
+                            return commentList;
+                        }
+                        else { return null; }
+                    }
+                    else { return null; }
+                }
+                else { return null; }
+            }
+            catch (HttpRequestException exception)
+            {
+                System.Diagnostics.Debug.WriteLine("HttpRequestException occured: " + exception.Message);
+                return null;
+            }
+            catch (TaskCanceledException exception)
+            {
+                System.Diagnostics.Debug.WriteLine("TaskCanceledException occured: " + exception.Message);
+                return null;
+            }
+        }
+        #endregion
+
+        #region Method : Get Subscription List, Function Code : 5
+        public async Task<List<Community>> GetSubscriptionList(string userEmail)
         {
             Uri baseAddress = new Uri(HttpFunctionCodes.URL);
             _httpClient.BaseAddress = baseAddress;
@@ -238,10 +287,10 @@ namespace Topics.Util
                     if (!responseString.Equals(""))
                     {
                         JsonParser jsonParser = new JsonParser();
-                        List<Topic> topicList = jsonParser.ParseTopic(responseString);
+                        List<Community> communityList = jsonParser.ParseCommunity(responseString);
 
-                        if (topicList != null)
-                            return topicList;
+                        if (communityList != null)
+                            return communityList;
                         else
                             return null;
                     }
@@ -262,23 +311,35 @@ namespace Topics.Util
         }
         #endregion
 
-        #region Method : Create Topic, Function Code : 5
-        public async Task<bool> CreateTopic(string userEmail, string topicName, string description, string categoryId)
+        #region Method : Create Community, Function Code : 6
+        public async Task<bool> CreateCommunity(string userEmail, string communityName, string description, string categoryId, StorageFile file)
         {
             Uri baseAddress = new Uri(HttpFunctionCodes.URL);
             _httpClient.BaseAddress = baseAddress;
 
             try
             {
-                List<KeyValuePair<string, string>> postData = new List<KeyValuePair<string, string>>();
-                postData.Add(new KeyValuePair<string, string>("select", HttpFunctionCodes.CREATE_TOPIC.ToString()));
-                postData.Add(new KeyValuePair<string, string>("user_email", userEmail));
-                postData.Add(new KeyValuePair<string, string>("topic_name", topicName));
-                postData.Add(new KeyValuePair<string, string>("description", description));
-                postData.Add(new KeyValuePair<string, string>("category_id", categoryId));
+                MultipartFormDataContent multipartFormDataContent = new MultipartFormDataContent();
+                HttpContent httpContent = new ByteArrayContent(await GetPhotoBytesAsync(file));
 
-                HttpContent httpContent = new FormUrlEncodedContent(postData);
-                HttpResponseMessage response = await _httpClient.PostAsync(HttpFunctionCodes.RESOURCE_ADDRESS, httpContent);
+                multipartFormDataContent.Add(httpContent, "file", file.Name);
+
+                httpContent = new StringContent(HttpFunctionCodes.CREATE_COMMUNITY.ToString());
+                multipartFormDataContent.Add(httpContent, "select");
+
+                httpContent = new StringContent(userEmail);
+                multipartFormDataContent.Add(httpContent, "user_email");
+
+                httpContent = new StringContent(communityName);
+                multipartFormDataContent.Add(httpContent, "community_name");
+
+                httpContent = new StringContent(description);
+                multipartFormDataContent.Add(httpContent, "description");
+
+                httpContent = new StringContent(categoryId);
+                multipartFormDataContent.Add(httpContent, "category_id");
+
+                HttpResponseMessage response = await _httpClient.PostAsync(HttpFunctionCodes.RESOURCE_ADDRESS, multipartFormDataContent);
                 Dispose();
 
                 if (response.IsSuccessStatusCode)
@@ -308,8 +369,8 @@ namespace Topics.Util
         }
         #endregion
 
-        #region Method : Post Issue, Function Code : 7
-        public async Task<int> PostIssue(string topicId, string userEmail, string content)
+        #region Method : Submit Post, Function Code : 7
+        public async Task<int> SubmitPost(string communityId, string userEmail, string content)
         {
             Uri baseAddress = new Uri(HttpFunctionCodes.URL);
             _httpClient.BaseAddress = baseAddress;
@@ -317,13 +378,12 @@ namespace Topics.Util
             try
             {
                 List<KeyValuePair<string, string>> postData = new List<KeyValuePair<string, string>>();
-                postData.Add(new KeyValuePair<string, string>("select", HttpFunctionCodes.POST_ISSUE.ToString()));
-                postData.Add(new KeyValuePair<string, string>("topic_id", topicId));
+                postData.Add(new KeyValuePair<string, string>("select", HttpFunctionCodes.SUBMIT_POST.ToString()));
+                postData.Add(new KeyValuePair<string, string>("community_id", communityId));
                 postData.Add(new KeyValuePair<string, string>("user_email", userEmail));
                 postData.Add(new KeyValuePair<string, string>("content", content));
 
                 HttpContent httpContent = new FormUrlEncodedContent(postData);
-                //HttpResponseMessage response = await _httpClient.PostAsync(HttpFunctionCodes.RESOURCE_ADDRESS, httpContent);
                 HttpResponseMessage response = await _httpClient.PostAsync(HttpFunctionCodes.RESOURCE_ADDRESS, httpContent);
 
                 Dispose();
@@ -336,7 +396,7 @@ namespace Topics.Util
                     {
                         JsonParser jsonParser = new JsonParser();
 
-                        return jsonParser.ParsePostedIssueId(responseString);
+                        return jsonParser.ParseSubmittedPostId(responseString);
                     }
                     else { return 0; }
                 }
@@ -355,8 +415,8 @@ namespace Topics.Util
         }
         #endregion
 
-        #region Method : Overload Post Issue, Function Code : 7
-        public async Task<int> PostIssue(string topicId, string userEmail, string content, StorageFile file)
+        #region Method : Overload Submit Post, Function Code : 7
+        public async Task<int> SubmitPost(string communityId, string userEmail, string content, StorageFile file)
         {
             Uri baseAddress = new Uri(HttpFunctionCodes.URL);
             _httpClient.BaseAddress = baseAddress;
@@ -368,11 +428,11 @@ namespace Topics.Util
 
                 multipartFormDataContent.Add(httpContent, "file", file.Name);
 
-                httpContent = new StringContent(HttpFunctionCodes.POST_ISSUE.ToString());
+                httpContent = new StringContent(HttpFunctionCodes.SUBMIT_POST.ToString());
                 multipartFormDataContent.Add(httpContent, "select");
 
-                httpContent = new StringContent(topicId);
-                multipartFormDataContent.Add(httpContent, "topic_id");
+                httpContent = new StringContent(communityId);
+                multipartFormDataContent.Add(httpContent, "community_id");
 
                 httpContent = new StringContent(userEmail);
                 multipartFormDataContent.Add(httpContent, "user_email");
@@ -391,7 +451,7 @@ namespace Topics.Util
                     {
                         JsonParser jsonParser = new JsonParser();
 
-                        return jsonParser.ParsePostedIssueId(responseString);
+                        return jsonParser.ParseSubmittedPostId(responseString);
                     }
                     else { return 0; }
                 }
@@ -410,8 +470,8 @@ namespace Topics.Util
         }
         #endregion
 
-        #region Method : Get Hot Issue List, Function Code: 9
-        public async Task<List<Issue>> GetHotIssueList()
+        #region Method : Submit Comment, Function Code : 8
+        public async Task<bool> SubmitComment(string postId, string userEmail, string comment)
         {
             Uri baseAddress = new Uri(HttpFunctionCodes.URL);
             _httpClient.BaseAddress = baseAddress;
@@ -419,7 +479,55 @@ namespace Topics.Util
             try
             {
                 List<KeyValuePair<string, string>> postData = new List<KeyValuePair<string, string>>();
-                postData.Add(new KeyValuePair<string, string>("select", HttpFunctionCodes.HOT_ISSUE.ToString()));
+                postData.Add(new KeyValuePair<string, string>("select", HttpFunctionCodes.SUBMIT_COMMENT.ToString()));
+                postData.Add(new KeyValuePair<string, string>("post_id", postId));
+                postData.Add(new KeyValuePair<string, string>("user_email", userEmail));
+                postData.Add(new KeyValuePair<string, string>("comment", comment));
+
+                HttpContent httpContent = new FormUrlEncodedContent(postData);
+                HttpResponseMessage response = await _httpClient.PostAsync(HttpFunctionCodes.RESOURCE_ADDRESS, httpContent);
+
+                Dispose();
+
+                if (response.IsSuccessStatusCode)
+                {
+                    string responseString = await response.Content.ReadAsStringAsync();
+
+                    if (!responseString.Equals(""))
+                    {
+                        JsonParser jsonParser = new JsonParser();
+
+                        return jsonParser.GetStatus(responseString);
+                    }
+                    else { return false; }
+                }
+                else { return false; }
+            }
+            catch (HttpRequestException exception)
+            {
+                System.Diagnostics.Debug.WriteLine("HttpRequestException occured: " + exception.Message);
+                return false;
+            }
+            catch (TaskCanceledException exception)
+            {
+                System.Diagnostics.Debug.WriteLine("TaskCanceledException occured: " + exception.Message);
+                return false;
+            }
+        }
+        #endregion
+
+        #region Method : Get Hot Topic List, Function Code: 9
+        public async Task<List<Post>> GetHotTopicList(string communityId, string userEmail)
+        {
+            Uri baseAddress = new Uri(HttpFunctionCodes.URL);
+            _httpClient.BaseAddress = baseAddress;
+
+            try
+            {
+                List<KeyValuePair<string, string>> postData = new List<KeyValuePair<string, string>>();
+                postData.Add(new KeyValuePair<string, string>("select", HttpFunctionCodes.HOT_TOPICS.ToString()));
+                postData.Add(new KeyValuePair<string, string>("community_id", communityId));
+                postData.Add(new KeyValuePair<string, string>("user_email", userEmail));
 
                 HttpContent httpContent = new FormUrlEncodedContent(postData);
                 HttpResponseMessage response = await _httpClient.PostAsync(HttpFunctionCodes.RESOURCE_ADDRESS, httpContent);
@@ -432,11 +540,11 @@ namespace Topics.Util
                     if (!responseString.Equals(""))
                     {
                         JsonParser jsonParser = new JsonParser();
-                        List<Issue> issueList = jsonParser.ParseIssue(responseString);
+                        List<Post> postList = jsonParser.ParsePost(responseString);
 
-                        if (issueList != null)
+                        if (postList != null)
                         {
-                            return issueList;
+                            return postList;
                         }
                         else { return null; }
                     }
@@ -453,6 +561,146 @@ namespace Topics.Util
             {
                 System.Diagnostics.Debug.WriteLine("TaskCanceledException occured: " + exception.Message);
                 return null;
+            }
+        }
+        #endregion
+
+        #region Method : Get Weekly Topic List, Function Code : 10
+        public async Task<List<Post>> GetWeeklyTopicList(string communityId, string userEmail)
+        {
+            Uri baseAddress = new Uri(HttpFunctionCodes.URL);
+            _httpClient.BaseAddress = baseAddress;
+
+            try
+            {
+                List<KeyValuePair<string, string>> postData = new List<KeyValuePair<string, string>>();
+                postData.Add(new KeyValuePair<string, string>("select", HttpFunctionCodes.WEEKLY_TOPIC.ToString()));
+                postData.Add(new KeyValuePair<string, string>("community_id", communityId));
+                postData.Add(new KeyValuePair<string, string>("user_email", userEmail));
+
+                HttpContent httpContent = new FormUrlEncodedContent(postData);
+                HttpResponseMessage response = await _httpClient.PostAsync(HttpFunctionCodes.RESOURCE_ADDRESS, httpContent);
+                Dispose();
+
+                if (response.IsSuccessStatusCode)
+                {
+                    string responseString = await response.Content.ReadAsStringAsync();
+
+                    if (!responseString.Equals(""))
+                    {
+                        JsonParser jsonParser = new JsonParser();
+                        List<Post> postList = jsonParser.ParseWeeklyTopics(responseString);
+
+                        if (postList != null)
+                        {
+                            return postList;
+                        }
+                        else { return null; }
+                    }
+                    else { return null; }
+                }
+                else { return null; }
+            }
+            catch (HttpRequestException exception)
+            {
+                System.Diagnostics.Debug.WriteLine("HttpRequestException occured: " + exception.Message);
+                return null;
+            }
+            catch (TaskCanceledException exception)
+            {
+                System.Diagnostics.Debug.WriteLine("TaskCanceledException occured: " + exception.Message);
+                return null;
+            }
+        }
+        #endregion
+
+        #region Method : Like Post, Function Code : 11
+        public async Task<bool> LikePost(string postId, string userEmail, string value)
+        {
+            Uri baseAddress = new Uri(HttpFunctionCodes.URL);
+            _httpClient.BaseAddress = baseAddress;
+
+            try
+            {
+                List<KeyValuePair<string, string>> postData = new List<KeyValuePair<string, string>>();
+                postData.Add(new KeyValuePair<string, string>("select", HttpFunctionCodes.LIKE_POST.ToString()));
+                postData.Add(new KeyValuePair<string, string>("post_id", postId));
+                postData.Add(new KeyValuePair<string, string>("user_email", userEmail));
+                postData.Add(new KeyValuePair<string, string>("value", value));
+
+                HttpContent httpContent = new FormUrlEncodedContent(postData);
+                HttpResponseMessage response = await _httpClient.PostAsync(HttpFunctionCodes.RESOURCE_ADDRESS, httpContent);
+
+                Dispose();
+
+                if (response.IsSuccessStatusCode)
+                {
+                    string responseString = await response.Content.ReadAsStringAsync();
+
+                    if (!responseString.Equals(""))
+                    {
+                        JsonParser jsonParser = new JsonParser();
+
+                        return jsonParser.GetStatus(responseString);
+                    }
+                    else { return false; }
+                }
+                else { return false; }
+            }
+            catch (HttpRequestException exception)
+            {
+                System.Diagnostics.Debug.WriteLine("HttpRequestException occured: " + exception.Message);
+                return false;
+            }
+            catch (TaskCanceledException exception)
+            {
+                System.Diagnostics.Debug.WriteLine("TaskCanceledException occured: " + exception.Message);
+                return false;
+            }
+        }
+        #endregion
+
+        #region Method : Subscribe Community, Function Code : 12
+        public async Task<bool> Subscribe(string userEmail, string communityId)
+        {
+            Uri baseAddress = new Uri(HttpFunctionCodes.URL);
+            _httpClient.BaseAddress = baseAddress;
+
+            try
+            {
+                List<KeyValuePair<string, string>> postData = new List<KeyValuePair<string, string>>();
+                postData.Add(new KeyValuePair<string, string>("select", HttpFunctionCodes.SUBSCRIBE.ToString()));
+                postData.Add(new KeyValuePair<string, string>("user_email", userEmail));
+                postData.Add(new KeyValuePair<string, string>("community_id", communityId));
+
+                HttpContent httpContent = new FormUrlEncodedContent(postData);
+                HttpResponseMessage response = await _httpClient.PostAsync(HttpFunctionCodes.RESOURCE_ADDRESS, httpContent);
+
+                Dispose();
+
+                if (response.IsSuccessStatusCode)
+                {
+                    string responseString = await response.Content.ReadAsStringAsync();
+
+                    if (!responseString.Equals(""))
+                    {
+                        JsonParser jsonParser = new JsonParser();
+
+                        return jsonParser.GetStatus(responseString);
+                    }
+                    else { return false; }
+                }
+                else { return false; }
+            }
+            catch (HttpRequestException exception)
+            {
+                System.Diagnostics.Debug.WriteLine("HttpRequestException occured: " + exception.Message);
+                return false;
+            }
+            catch (TaskCanceledException exception)
+            {
+                System.Diagnostics.Debug.WriteLine("TaskCanceledException occured: " + exception.Message);
+                return false;
             }
         }
         #endregion

@@ -43,5 +43,20 @@ namespace Topics.Util
 
             return true;
         }
+
+        public static bool RemoveUserData()
+        {
+            try
+            {
+                roamingSettings.Values.Clear();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("HttpRequestException occured: " + ex.Message);
+                return false;
+            }
+
+            return true;
+        }
     }
 }

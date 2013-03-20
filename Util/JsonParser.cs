@@ -38,45 +38,7 @@ namespace Topics.Util
 {
     class JsonParser
     {
-        //public string GetUser(string responseString)
-        //{
-        //    dynamic json = JsonConvert.DeserializeObject(responseString);
-        //    if ((int)json.status == 1)
-        //    {
-        //        return json.result[1].name;
-        //    }
-        //    else
-        //    {
-        //        return null;
-        //    }
-        //}
-
-        //#region Get User Method
-        //public string GetUsers(string json)
-        //{
-        //    try
-        //    {
-        //        JObject root = JObject.Parse(json);
-        //        if ((bool)root.SelectToken("status"))
-        //        {
-        //            JToken jtoken = root.SelectToken("result");
-        //            List<dynamic> users = jtoken.ToList<dynamic>();
-
-        //            return users[0].name;
-        //        }
-        //        else
-        //        {
-        //            return null;
-        //        }
-        //    }
-        //    catch (JsonReaderException exception)
-        //    {
-        //        System.Diagnostics.Debug.WriteLine("JsonReaderException occured :" + exception.Message);
-        //        return null;
-        //    }
-        //}
-        //#endregion
-
+        #region Method : Parse Category
         public List<Category> ParseCategory(string json)
         {
             try
@@ -114,8 +76,10 @@ namespace Topics.Util
                 return null;
             }
         }
+        #endregion
 
-        public List<Topic> ParseTopic(string json)
+        #region Method : Parse Community
+        public List<Community> ParseCommunity(string json)
         {
             try
             {
@@ -127,18 +91,26 @@ namespace Topics.Util
                     try
                     {
                         List<dynamic> resultList = jtoken.ToList<dynamic>();
-                        List<Topic> topicList = new List<Topic>();
+                        List<Community> communityList = new List<Community>();
 
+                        //community_id, community_name, category_id, description, image, community_datetime, era, era_datetime, community_master, master_datetime, user_count, post_count
                         foreach (dynamic result in resultList)
                         {
-                            topicList.Add(new Topic((int)result.topicId,
+                            communityList.Add(new Community((int)result.communityId,
                                                     (int)result.categoryId,
-                                                    (string)result.topicName,
+                                                    (string)result.communityName,
                                                     (string)result.description,
-                                                    (string)result.imageUri));
+                                                    (string)result.image,
+                                                    (string)result.communityDateTime.date,
+                                                    (string)result.era,
+                                                    (string)result.eraDateTime.date,
+                                                    (string)result.communityMaster,
+                                                    (string)result.masterDateTime.date,
+                                                    (int)result.userCount,
+                                                    (int)result.postCount));
                         }
 
-                        return topicList;
+                        return communityList;
                     }
                     catch (Exception ex)
                     {
@@ -157,8 +129,10 @@ namespace Topics.Util
                 return null;
             }
         }
+        #endregion
 
-        public List<Issue> ParseIssue(string json)
+        #region Method : Parse Post
+        public List<Post> ParsePost(string json)
         {
             try
             {
@@ -170,20 +144,21 @@ namespace Topics.Util
                     try
                     {
                         List<dynamic> resultList = jtoken.ToList<dynamic>();
-                        List<Issue> issueList = new List<Issue>();
+                        List<Post> postList = new List<Post>();
 
                         foreach (dynamic result in resultList)
                         {
-                            issueList.Add(new Issue((int)result.issueId,
-                                                    (int)result.topicId,
+                            postList.Add(new Post((int)result.postId,
+                                                    (int)result.communityId,
                                                     (string)result.userEmail,
                                                     (string)result.content,
                                                     (string)result.imageUri,
-                                                    (int)result.hot,
-                                                    (string)result.hot));
+                                                    (string)result.likeCount,
+                                                    (bool)result.value,
+                                                    (string)result.dateTime.date));
                         }
 
-                        return issueList;
+                        return postList;
                     }
                     catch (Exception ex)
                     {
@@ -202,8 +177,105 @@ namespace Topics.Util
                 return null;
             }
         }
+        #endregion
 
-        public int ParsePostedIssueId(string json)
+        #region Method : Parse Weekly Topics
+        public List<Post> ParseWeeklyTopics(string json)
+        {
+            try
+            {
+                JObject root = JObject.Parse(json);
+                if ((bool)root.SelectToken("status"))
+                {
+                    JToken jtoken = root.SelectToken("result");
+
+                    try
+                    {
+                        List<dynamic> resultList = jtoken.ToList<dynamic>();
+                        List<Post> postList = new List<Post>();
+
+                        foreach (dynamic result in resultList)
+                        {
+                            postList.Add(new Post((int)result.postId,
+                                                    (int)result.communityId,
+                                                    (string)result.userEmail,
+                                                    (string)result.content,
+                                                    (string)result.imageUri,
+                                                    (string)result.likeCount,
+                                                    (bool)result.value,
+                                                    (string)result.dateTime.date,
+                                                    (string)result.weeklyTopics.date,
+                                                    (int)result.week));
+                        }
+
+                        return postList;
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine(ex.Message);
+                        return null;
+                    }
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            catch (JsonReaderException exception)
+            {
+                System.Diagnostics.Debug.WriteLine("JsonReaderException occured :" + exception.Message);
+                return null;
+            }
+        }
+        #endregion
+
+        #region Method : Parse Comment
+        public List<Comment> ParseComment(string json)
+        {
+            try
+            {
+                JObject root = JObject.Parse(json);
+                if ((bool)root.SelectToken("status"))
+                {
+                    JToken jtoken = root.SelectToken("result");
+
+                    try
+                    {
+                        List<dynamic> resultList = jtoken.ToList<dynamic>();
+                        List<Comment> commentList = new List<Comment>();
+
+                        foreach (dynamic result in resultList)
+                        {
+                            commentList.Add(new Comment((int)result.commentId,
+                                                        (int)result.postId,
+                                                        (string)result.userEmail,
+                                                        (string)result.comment,
+                                                        (string)result.dateTime.date));
+                        }
+
+                        return commentList;
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine(ex.Message);
+                        return null;
+                    }
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            catch (JsonReaderException exception)
+            {
+                System.Diagnostics.Debug.WriteLine("JsonReaderException occured :" + exception.Message);
+                return null;
+            }
+        }
+        #endregion
+
+        #region Method : Parse Submitted Post Id
+        public int ParseSubmittedPostId(string json)
         {
             try
             {
@@ -235,6 +307,7 @@ namespace Topics.Util
                 return 0;
             }
         }
+        #endregion
 
         #region Get Query Status
         public bool GetStatus(string json)

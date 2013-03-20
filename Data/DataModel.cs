@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Topics.Util.View;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Media.Imaging;
@@ -17,7 +18,7 @@ namespace Topics.Data
         private static Uri          _baseUri = new Uri("ms-appx:///");
         private static Uri          baseUri = new Uri("http://topics.azurewebsites.net/");
 
-        public DataCommon(String uniqueId, String title, String subtitle, String imagePath, String description)
+        public DataCommon(int uniqueId, String title, String subtitle, String imagePath, String description)
         {
             this._uniqueId = uniqueId;
             this._title = title;
@@ -26,8 +27,10 @@ namespace Topics.Data
             this._imagePath = imagePath;
         }
 
-        private string _uniqueId = string.Empty;
-        public string UniqueId
+        public DataCommon() { }
+
+        private int _uniqueId;
+        public int UniqueId
         {
             get { return this._uniqueId; }
             set { this.SetProperty(ref this._uniqueId, value); }
@@ -74,18 +77,18 @@ namespace Topics.Data
             }
         }
 
-        private int _itemTemplate = Topics.Util.ItemTemplates.DEFAULT;
+        private int _itemTemplate = Topics.Util.View.ItemTemplates.DEFAULT;
         public int ItemTemplate
         {
             get { return this._itemTemplate; }
             set { this.SetProperty(ref this._itemTemplate, value); }
         }
 
-        private bool _isLoading = true;
-        public bool IsLoading
+        private bool _isTrue;
+        public bool IsTrue
         {
-            get { return this._isLoading; }
-            set { this.SetProperty(ref this._isLoading, value); }
+            get { return this._isTrue; }
+            set { this.SetProperty(ref this._isTrue, value); }
         }
 
         public void SetImage(String path)
@@ -100,11 +103,44 @@ namespace Topics.Data
     #region Class : Data Item / implements DataCommon Class
     public class DataItem : DataCommon
     {
-        public DataItem(String uniqueId, String title, String subtitle, String imagePath, String description, String content, DataGroup group)
+        public DataItem(int uniqueId, String title, String subtitle, String imagePath, String description, String content, DataGroup group)
             : base(uniqueId, title, subtitle, imagePath, description)
         {
             this._content = content;
             this._group = group;
+        }
+
+        public DataItem(int uniqueId, String title, String subtitle, String imagePath, String description, String content, DataGroup group, int itemTemplate)
+            : base(uniqueId, title, subtitle, imagePath, description)
+        {
+            this._content = content;
+            this._group = group;
+            this.ItemTemplate = itemTemplate;
+        }
+
+        public DataItem(int uniqueId, String title, String subtitle, String imagePath, String description, String content, DataGroup group, bool liked)
+            : base(uniqueId, title, subtitle, imagePath, description)
+        {
+            this._content = content;
+            this._group = group;
+            this.IsTrue = liked;
+        }
+
+        public DataItem(int uniqueId, String title, String subtitle, String imagePath, String description, String content, DataGroup group, dynamic originalSource)
+            : base(uniqueId, title, subtitle, imagePath, description)
+        {
+            this._content = content;
+            this._group = group;
+            this.OriginalSource = originalSource;
+        }
+
+        public DataItem(int uniqueId, String title, String subtitle, String imagePath, String description, String content, DataGroup group, bool liked, dynamic originalSource)
+            : base(uniqueId, title, subtitle, imagePath, description)
+        {
+            this._content = content;
+            this._group = group;
+            this.IsTrue = liked;
+            this.OriginalSource = originalSource;
         }
 
         private string _content = string.Empty;
@@ -114,7 +150,23 @@ namespace Topics.Data
             set { this.SetProperty(ref this._content, value); }
         }
 
+        private dynamic _originalSource;
+        public dynamic OriginalSource
+        {
+            get { return this._originalSource; }
+            set { this.SetProperty(ref this._originalSource, value); }
+        }
+
         private DataGroup _group;
+        private int p1;
+        private string p2;
+        private string p3;
+        private string p4;
+        private string p5;
+        private string p6;
+        private DataModel dataModel;
+        private bool p7;
+        private Post post;
         public DataGroup Group
         {
             get { return this._group; }
@@ -126,22 +178,125 @@ namespace Topics.Data
     #region Class : Data Group / implements DataCommon Class
     public class DataGroup : DataCommon
     {
-        public DataGroup(String uniqueId, String title, String subtitle, String imagePath, String description)
+        public DataGroup(int uniqueId, String title, String subtitle, String imagePath, String description)
             : base(uniqueId, title, subtitle, imagePath, description)
         {
 
         }
+
+        public DataGroup() { }
 
         private ObservableCollection<DataItem> _items = new ObservableCollection<DataItem>();
         public ObservableCollection<DataItem> Items
         {
             get { return this._items; }
         }
+
+        public void InitMainMenuDataGroup()
+        {
+            this.Items.Add(new DataItem(0, null, "Hot Topics", null, "Hot Topics", null, this));
+            this.Items.Add(new DataItem(1, null, "Subscriptions", null, "Subscriptions", null, this));
+            this.Items.Add(new DataItem(2, null, "Category", null, "Category", null, this));
+        }
+
+        public void InitCommunityMenuDataGroup()
+        {
+            this.Items.Add(new DataItem(0, null, "Hot Topics", null, "Hot Topics", null, this));
+            this.Items.Add(new DataItem(1, null, "Weekly Topics", null, "Weekly Topics", null, this));
+            this.Items.Add(new DataItem(2, null, "Posts", null, "Posts", null, this));
+            this.Items.Add(new DataItem(3, null, "Votes", null, "Votes", null, this));
+        }
+
+        public void InitCategoryMenuDataGroup(List<Category> categoryList)
+        {
+            if (categoryList != null)
+            {
+                foreach (Category category in categoryList)
+                {
+                    if(!this.Items.Any(i => i.UniqueId == category.CategoryId))
+                        this.Items.Add(new DataItem(category.CategoryId, category.CategoryName, category.CategoryName, category.Image, category.CategoryName, category.CategoryName, this));
+                }
+            }
+        }
+
+        public void StorePostsData(List<Post> postList)
+        {
+            if (postList != null)
+            {
+                foreach (Post post in postList)
+                {
+                    if (post.WeeklyTopics.Equals(string.Empty))
+                    {
+                        if (!this.Items.Any(i => i.UniqueId == post.PostId))
+                            this.Items.Add(new DataItem(post.PostId, post.UserEmail, post.DateTime, post.ImageUri, post.LikeCount, post.Content, this, !post.Liked));
+
+                    }
+                    else
+                    {
+                        if (!this.Items.Any(i => i.UniqueId == post.PostId))
+                            this.Items.Add(new DataItem(post.PostId, post.UserEmail, post.DateTime, post.ImageUri, post.LikeCount, post.Content, this, !post.Liked, post));
+                    }
+
+                }
+            }
+        }
+
+        public void StoreSubscriptionsData(List<Community> subscriptionList)
+        {
+            if (subscriptionList != null)
+            {
+                foreach (Community community in subscriptionList)
+                {
+                    if(!this.Items.Any(i => i.UniqueId == community.CommunityId))
+                        this.Items.Add(new DataItem(community.CommunityId, community.CommunityName, community.Master, community.Image, community.Description, community.UserCount.ToString(), this, true, community));
+                }
+            }
+        }
+
+        public void StoreCommentData(List<Comment> commentList)
+        {
+            if (commentList != null)
+            {
+                foreach (Comment comment in commentList)
+                {
+                    if (!this.Items.Any(i => i.UniqueId == comment.CommentId))
+                    {
+                        if (comment.UserEmail.Equals(User.Instance.Email))
+                            this.Items.Add(new DataItem(comment.CommentId, comment.UserEmail, comment.DateTime, null, comment.Content, comment.Content, this, ItemTemplates.RIGHT_SIDE_LIST_VIEW_ITEM));
+                        else
+                            this.Items.Add(new DataItem(comment.CommentId, comment.UserEmail, comment.DateTime, null, comment.Content, comment.Content, this));
+                    }
+                }
+            }
+        }
+
+        public bool StoreCategorizedCommunityData(List<Community> categorizedCommunityList)
+        {
+            if (categorizedCommunityList != null)
+            {
+                if (this.Items.Count != 0)
+                    this.Items.Clear();
+
+                foreach (Community community in categorizedCommunityList)
+                {
+                    if(User.Instance.Subscription.Items.Any(i => i.UniqueId == community.CommunityId))
+                        this.Items.Add(new DataItem(community.CommunityId, community.CommunityName, community.Master, community.Image, community.Description, community.UserCount.ToString(), this, true, community));
+                    else
+                        this.Items.Add(new DataItem(community.CommunityId, community.CommunityName, community.Master, community.Image, community.Description, community.UserCount.ToString(), this, false, community));
+                }
+
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
     }
     #endregion
 
-    #region Class : Data Source / has Data Groups(ItemGroups)
-    public sealed class DataSource
+    #region Class : Data Model / has Data Groups(ItemGroups)
+    public sealed class DataModel
     {
         private ObservableCollection<DataGroup> _itemGroups = new ObservableCollection<DataGroup>();
         public ObservableCollection<DataGroup> ItemGroups
@@ -149,81 +304,24 @@ namespace Topics.Data
             get { return this._itemGroups; }
         }
 
-        #region Method : Initialize Main Page Data Source
-        public void InitMainPageDataSource(List<Issue> hotIssueList, List<Topic> myTopicList, List<Category> categoryList)
+        public void StoreWeeklyTopicsData(List<Post> postList)
         {
-            if (hotIssueList != null)
+            if (postList != null)
             {
-                var hotIssueGroup = new DataGroup("Hot Issues", "Hot\nissues", "Hot Issues", "logo.png", "Hot Issues");
-
-                foreach (Issue issue in hotIssueList)
+                foreach (Post post in postList)
                 {
-                    hotIssueGroup.Items.Add(new DataItem(issue.IssueId.ToString(), issue.Content, issue.UserEmail, issue.ImageUri, issue.Content, issue.Content, hotIssueGroup));
+                    if (!this.ItemGroups.Any(i => i.UniqueId == post.Week))
+                        this.ItemGroups.Add(new DataGroup(post.Week, post.Week.ToString(), post.WeeklyTopics, null, post.WeeklyTopics));
                 }
 
-                this.ItemGroups.Add(hotIssueGroup);
-            }
-
-            if (myTopicList != null)
-            {
-                var myTopicGroup = new DataGroup("My Topics", "My\nTopics", "My Topics", "logo.png", "My Topics");
-
-                foreach (Topic subscription in myTopicList)
+                foreach (Post post in postList)
                 {
-                    if(subscription.ImageUri != null)
-                        myTopicGroup.Items.Add(new DataItem(subscription.TopicId.ToString(), subscription.TopicName, subscription.TopicName, subscription.ImageUri, subscription.Description, subscription.Description, myTopicGroup));
-                    else
-                        myTopicGroup.Items.Add(new DataItem(subscription.TopicId.ToString(), subscription.TopicName, subscription.TopicName, "logo.png", subscription.Description, subscription.Description, myTopicGroup));
-                }
-                this.ItemGroups.Add(myTopicGroup);
-            }
-
-            if (categoryList != null)
-            {
-                var categoryGroup = new DataGroup("Category", "Bands\nof Topics", "Category", "logo.png", "Category");
-                categoryGroup.ItemTemplate = Topics.Util.ItemTemplates.TALL_SIZE_ITEM;
-
-                foreach (Category category in categoryList)
-                {
-                    categoryGroup.Items.Add(new DataItem(category.CategoryId.ToString(), category.CategoryName, category.CategoryName, category.ImageUri, category.CategoryName, category.CategoryName, categoryGroup));
-                }
-                this.ItemGroups.Add(categoryGroup);
-            }
-        }
-        #endregion
-
-        public void StoreDetailCategoryDataSource(List<Category> detailCategoryList)
-        {
-            if (detailCategoryList != null)
-            {
-                foreach (Category category in detailCategoryList)
-                {
-                    this.ItemGroups.Add(new DataGroup(category.CategoryId.ToString(), category.CategoryName, category.CategoryName, category.ImageUri, category.CategoryName));
+                    DataGroup tmp = this.ItemGroups.Single(i => i.UniqueId == post.Week);
+                    tmp.Items.Add(new DataItem(post.PostId, post.UserEmail, post.DateTime, post.ImageUri, post.LikeCount, post.Content, tmp, !post.Liked, post));
                 }
             }
         }
 
-        public void StoreTopicDataSource(List<Topic> topicList)
-        {
-            if (topicList != null)
-            {
-                foreach (Topic topic in topicList)
-                {
-                    this.ItemGroups.Add(new DataGroup(topic.TopicId.ToString(), topic.TopicName, topic.TopicName, topic.ImageUri, topic.Description));
-                }
-            }
-        }
-
-        public void StoreIssueDataSource(List<Issue> issueList)
-        {
-            if (issueList != null)
-            {
-                foreach (Issue issue in issueList)
-                {
-                    this.ItemGroups.Add(new DataGroup(issue.IssueId.ToString(), issue.Content, issue.Content, issue.ImageUri, issue.Content));
-                }
-            }
-        }
     }
     #endregion
 
