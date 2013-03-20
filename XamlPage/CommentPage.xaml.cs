@@ -15,7 +15,7 @@ using Topics.Data;
 using Topics.Util;
 using System.Threading.Tasks;
 using Windows.UI.Popups;
-
+  
 namespace Topics.XamlPage
 {
     public sealed partial class CommentPage : UserControl
