@@ -158,15 +158,6 @@ namespace Topics.Data
         }
 
         private DataGroup _group;
-        private int p1;
-        private string p2;
-        private string p3;
-        private string p4;
-        private string p5;
-        private string p6;
-        private DataModel dataModel;
-        private bool p7;
-        private Post post;
         public DataGroup Group
         {
             get { return this._group; }
@@ -190,6 +181,7 @@ namespace Topics.Data
         public ObservableCollection<DataItem> Items
         {
             get { return this._items; }
+            set { this.SetProperty(ref this._items, value); }
         }
 
         public void InitMainMenuDataGroup()

@@ -76,9 +76,5 @@ namespace Topics.Util.View
         public static Size SecondarySmallItem = new Size(3, 1);
         public static Size SecondaryTallItem = new Size(3, 2);
         public static Size OtherSmallItem = new Size(2, 1);
-        
-        public static Size PrimaryTallItem = new Size(3, 3);
-        public static Size PrimaryTallExpandedItem = new Size(7, 3);
-        public static Size PrimaryWideExpandedItem = new Size(12, 3);
     }
 }

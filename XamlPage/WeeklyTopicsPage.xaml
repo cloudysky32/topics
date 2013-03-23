@@ -23,6 +23,19 @@
                 </Grid>
             </Grid>
         </DataTemplate>
+
+        <!-- Custom Tile Item Template -->
+        <DataTemplate x:Key="CustomTileItem">
+            <Grid >
+                <Border Background="{StaticResource ListViewItemPlaceholderBackgroundThemeBrush}">
+                    <Image Source="{Binding Image}" Stretch="UniformToFill"/>
+                </Border>
+                <StackPanel VerticalAlignment="Bottom" Background="#f26822">
+                    <TextBlock Text="{Binding Title}" Foreground="{StaticResource ListViewItemOverlayForegroundThemeBrush}" Style="{StaticResource TitleTextStyle}" Height="30" Margin="15,0,15,0"/>
+                    <TextBlock Text="{Binding Subtitle}" Foreground="{StaticResource ListViewItemOverlaySecondaryForegroundThemeBrush}" Style="{StaticResource CaptionTextStyle}" TextWrapping="NoWrap" Margin="15,0,15,10"/>
+                </StackPanel>
+            </Grid>
+        </DataTemplate>
     </UserControl.Resources>
 
     <Grid>
@@ -62,18 +75,46 @@
                 </Grid.RowDefinitions>
 
                 <util:VariableSizedGridView
-                    x:Name="weeklyTopicsGridView">
-                    
+                    x:Name="weeklyTopicsGridView"
+                    AutomationProperties.AutomationId="WeeklyTopicsGridView"
+                    AutomationProperties.Name="WeeklyTopics"
+                    Margin="10,0,40,46"
+                    ItemsSource="{Binding SelectedItem.Items, ElementName=weekListView}"
+                    ItemTemplate="{StaticResource CustomTileItem}"
+                    SelectionMode="None"
+                    IsItemClickEnabled="True">
+
+                    <util:VariableSizedGridView.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <VirtualizingStackPanel Orientation="Horizontal"/>
+                        </ItemsPanelTemplate>
+                    </util:VariableSizedGridView.ItemsPanel>
+
+                    <util:VariableSizedGridView.GroupStyle>
+                        <GroupStyle>
+                            <GroupStyle.Panel>
+                                <ItemsPanelTemplate>
+                                    <VariableSizedWrapGrid ItemWidth="35" ItemHeight="70" Orientation="Vertical" Margin="0,0,80,0" MaximumRowsOrColumns="-1"/>
+                                </ItemsPanelTemplate>
+                            </GroupStyle.Panel>
+                        </GroupStyle>
+                    </util:VariableSizedGridView.GroupStyle>
+
                 </util:VariableSizedGridView>
-                
+
+
                 <ListView
                     x:Name="weekListView"
                     AutomationProperties.AutomationId="SubCategoryListView"
                     AutomationProperties.Name="SubCategoryItems"
                     Grid.Row="1"
                     Margin="30,0,30,30"
-                    ItemTemplate="{StaticResource Standard130ItemTemplate}"
-                    IsSwipeEnabled="False">
+                    ItemTemplate="{StaticResource Standard80ItemTemplate}"
+                    IsSwipeEnabled="False"
+                    ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                    ScrollViewer.VerticalScrollMode="Disabled"
+                    ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                    ScrollViewer.HorizontalScrollMode="Auto" SelectionChanged="WeekListView_SelectionChanged">
 
                     <ListView.ItemsPanel>
                         <ItemsPanelTemplate>

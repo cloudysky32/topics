@@ -149,13 +149,13 @@ namespace Topics.Util
                         foreach (dynamic result in resultList)
                         {
                             postList.Add(new Post((int)result.postId,
-                                                    (int)result.communityId,
-                                                    (string)result.userEmail,
-                                                    (string)result.content,
-                                                    (string)result.imageUri,
-                                                    (string)result.likeCount,
-                                                    (bool)result.value,
-                                                    (string)result.dateTime.date));
+                                                (int)result.communityId,
+                                                (string)result.userEmail,
+                                                (string)result.content,
+                                                (string)result.imageUri,
+                                                (string)result.likeCount,
+                                                (bool)result.value,
+                                                (string)result.dateTime.date));
                         }
 
                         return postList;
